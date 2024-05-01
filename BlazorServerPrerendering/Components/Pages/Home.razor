@@ -1,0 +1,35 @@
+﻿@page "/"
+@inject IStatsService StatsService;
+@using BlazorServerPrerendering.Services
+
+<PageTitle>NHL All Time Most Points Scored</PageTitle>
+
+<h1>NHL All Time Most Points Scored</h1>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 180px;">Name</th>
+            <th style="width: 140px;">Games Played</th>
+            <th style="width: 140px;">Points Scored</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var player in Players)
+        {
+            <tr>
+                <td>@player.Name</td>
+                <td>@player.GamesPlayed</td>
+                <td>@player.Points</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    public IEnumerable<Player> Players { get; set; } = new List<Player>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        Players = await StatsService.GetMostCareerPoints();
+    }
+}
