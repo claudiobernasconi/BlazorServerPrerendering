@@ -1,5 +1,7 @@
 ﻿@page "/"
-@inject IStatsService StatsService;
+@inject IStatsService StatsService
+@inject PersistentComponentState ApplicationState
+@implements IDisposable
 @using BlazorServerPrerendering.Services
 
 <PageTitle>NHL All Time Most Points Scored</PageTitle>
@@ -27,9 +29,25 @@
 
 @code {
     public IEnumerable<Player> Players { get; set; } = new List<Player>();
+    private PersistingComponentStateSubscription _persistingSubscription;
 
     protected async override Task OnInitializedAsync()
     {
-        Players = await StatsService.GetMostCareerPoints();
+        _persistingSubscription = ApplicationState.RegisterOnPersisting(PersistData);
+
+        var statedLoaded = ApplicationState.TryTakeFromJson<IEnumerable<Player>>("players", out var players);
+
+        Players = statedLoaded && players != null ? players : await StatsService.GetMostCareerPoints();
+    }
+
+    private Task PersistData()
+    {
+        ApplicationState.PersistAsJson("players", Players);
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        _persistingSubscription.Dispose();
     }
 }
